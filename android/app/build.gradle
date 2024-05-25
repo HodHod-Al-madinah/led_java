@@ -24,6 +24,15 @@ if (flutterVersionName == null) {
 }
 
 android {
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java']
+            res.srcDirs = ['src/main/res']
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+            assets.srcDirs = ['src/main/assets']
+//            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
     namespace = "com.example.led_java"
     compileSdk = 34
     ndkVersion = flutter.ndkVersion

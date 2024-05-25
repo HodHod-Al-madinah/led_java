@@ -2,11 +2,20 @@ package com.example.led_java;
 
 import io.flutter.embedding.android.FlutterActivity;
 
+
+
+import com.led.sdk.Constants;
 import com.led.sdk.LedSdk;
 import com.led.sdk.ResultBean;
 import com.led.sdk.callback.SendDataCallback;
 import com.led.sdk.entity.Device;
 import com.led.sdk.entity.SingleWork;
+
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import java.util.Random;
@@ -20,6 +29,15 @@ import io.flutter.plugin.common.MethodChannel;
 public class MainActivity extends FlutterActivity {
     private static final String CHANNEL = "com.hodhod.led_example/led";
     private LedSdk ledSdk;
+    public static final int[] COLORS = new int[] {
+            0XFFFFFF,
+            0xFF0000,
+            0xFF7F00,
+            0xFFFF00,
+            0x00FF00,
+            0x00FFFF,
+            0x0000FF,
+            0xFF00FF };
 
     //    @Override
 //    protected void onCreate(Bundle savedInstanceState) {
@@ -40,9 +58,9 @@ public class MainActivity extends FlutterActivity {
                                     break;
                                 case "playText":
                                     String text = call.argument("text");
-                                    String playRresult =
+//                                    String playRresult =
                                             playText(text);
-                                    result.success(playRresult);
+                                    result.success(null);
                                     break;
                                 case "playMonograph":
 //                                playMonograph();
@@ -93,15 +111,15 @@ public class MainActivity extends FlutterActivity {
         return ret;
     }
 
-    private String playText(String text) {
-        if (text.isEmpty() || text == null) return "Empty Text";
-        if (ledSdk == null || !ledSdk.isConnected()) return "Not connected";
+    private void playText(String text) {
+//        if (text.isEmpty() || text == null) return "Empty Text";
+//        if (ledSdk == null || !ledSdk.isConnected()) return "Not connected";
 
         Device device = ledSdk.getDevice();
         int[] colors = randomColor(text);
         byte[] fontData = getFontData();
         SingleWork work = new SingleWork();
-        work.setType(com.led.sdk.Constants.TYPE_TEXT);
+        work.setType(Constants.TYPE_TEXT);
         work.setText(text);
         work.setColors(colors);
         work.setDevice(device);
@@ -110,21 +128,53 @@ public class MainActivity extends FlutterActivity {
         work.setFontData(fontData);
         work.setKeepTime(200);
         ledSdk.playWork(this, work);
-        return "Success!";
+
+//        return "success! ";
     }
 
-    private int[] randomColor(String text) {
+    public static int[] randomColor(String text) {
         int[] colors = new int[text.length()];
-        Random random = new Random();
-        for (int i = 0; i < text.length(); i++) {
-            colors[i] = Constants.COLORS[random.nextInt(Constants.COLORS.length)];
+        for (int n = 0; n < text.length(); n++) {
+            int random = new Random().nextInt(COLORS.length - 1);
+            colors[n] = COLORS[random];
         }
         return colors;
     }
 
+//    private byte[] getFontData() {
+//        // Implement the getFontData method
+//        return new byte[0];
+//    }
+
+    private String getFileName() {
+        String fileName = "12x12.DZK";
+        Device device = ledSdk == null ? null : ledSdk.getDevice();
+        if (device == null)
+            return fileName;
+
+        if (device.getRow() == 16)
+            fileName = "16x16.DZK";
+        else if (device.getRow() == 22)
+            fileName = "22x22.DZK";
+        else if (device.getRow() == 32)
+            fileName = "32x32.DZK";
+        else if (device.getRow() == 64)
+            fileName = "64x64.DZK";
+
+        return fileName;
+    }
     private byte[] getFontData() {
-        // Implement the getFontData method
-        return new byte[0];
+        try {
+            String fileName = getFileName();
+            InputStream inputStream = getAssets().open(fileName);
+            byte[] data = new byte[inputStream.available()];
+            inputStream.read(data);
+
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     private void disconnect() {
         if (ledSdk != null)

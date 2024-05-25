@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class LedDevices extends StatefulWidget {
   const LedDevices({super.key});
@@ -10,6 +12,7 @@ class LedDevices extends StatefulWidget {
 
 class _LedDevicesState extends State<LedDevices> {
   List<BluetoothDevice> devices = [];
+  static const platform = MethodChannel('com.hodhod.led_example/led');
 
   @override
   void initState() {
@@ -33,7 +36,8 @@ class _LedDevicesState extends State<LedDevices> {
     //   (results) {
     //     print("Scan results : $results");
     //     if (results.isNotEmpty) {
-    //       ScanResult r = results.last; // the most recently found device
+    //       ScanResult r = results.last;
+    //       // devices.add(results);// the most recently found device
     //       print(
     //           '${r.device.remoteId}: "${r.advertisementData.advName}" found!');
     //     }
@@ -63,6 +67,7 @@ class _LedDevicesState extends State<LedDevices> {
 
   Future<void> connectToDevice(BluetoothDevice device) async {
     await device.connect();
+    print("Connected to device");
     // Once connected, you can perform operations on the device.
   }
 
@@ -91,8 +96,10 @@ class _LedDevicesState extends State<LedDevices> {
                     title: Text(devices[index].platformName),
                     subtitle: Text(devices[index].remoteId.toString()),
                     trailing: ElevatedButton(
-                      onPressed: () async =>
-                          await connectToDevice(devices[index]),
+                      onPressed: () async {
+                        // await connectToDevice(devices[index]);
+                        _connectToLed(devices[index].remoteId.toString());
+                      },
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.all(Colors.green),
                       ),
@@ -119,5 +126,15 @@ class _LedDevicesState extends State<LedDevices> {
         ),
       ),
     );
+  }
+
+  Future<void> _connectToLed(String macAddress) async {
+    try {
+      final int result =
+          await platform.invokeMethod('connect', {'macAddress': macAddress});
+      SmartDialog.showToast('Connect result: $result');
+    } on PlatformException catch (e) {
+      SmartDialog.showToast("Failed to connect to LED: '${e.message}'.");
+    }
   }
 }
