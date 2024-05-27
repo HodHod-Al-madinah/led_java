@@ -123,8 +123,8 @@ public class MainActivity extends FlutterActivity {
         work.setText(text);
         work.setColors(colors);
         work.setDevice(device);
-        work.setWidth(64);
-        work.setHeight(64);
+        work.setWidth(96);
+        work.setHeight(32);
         work.setFontData(fontData);
         work.setKeepTime(200);
         ledSdk.playWork(this, work);
