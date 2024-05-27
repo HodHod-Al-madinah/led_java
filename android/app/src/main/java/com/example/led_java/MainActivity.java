@@ -58,9 +58,9 @@ public class MainActivity extends FlutterActivity {
                                     break;
                                 case "playText":
                                     String text = call.argument("text");
-//                                    String playRresult =
+                                    String playRresult =
                                             playText(text);
-                                    result.success(null);
+                                    result.success(playRresult);
                                     break;
                                 case "playMonograph":
 //                                playMonograph();
@@ -111,7 +111,7 @@ public class MainActivity extends FlutterActivity {
         return ret;
     }
 
-    private void playText(String text) {
+    private String playText(String text) {
 //        if (text.isEmpty() || text == null) return "Empty Text";
 //        if (ledSdk == null || !ledSdk.isConnected()) return "Not connected";
 
@@ -129,7 +129,7 @@ public class MainActivity extends FlutterActivity {
         work.setKeepTime(200);
         ledSdk.playWork(this, work);
 
-//        return "success! ";
+        return getFileName();
     }
 
     public static int[] randomColor(String text) {

@@ -146,10 +146,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> _playText() async {
     try {
       final String text = textController.text;
-      // String result =
-      await platform.invokeMethod('playText', {'text': text});
+      String result = await platform.invokeMethod('playText', {'text': text});
       // print('PlayText  result: $result');
-      // SmartDialog.showToast('PlayText  result: ');
+      SmartDialog.showToast('$result');
     } on PlatformException catch (e) {
       SmartDialog.showToast("Failed to play text on LED: '${e.message}'.");
     }
