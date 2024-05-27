@@ -163,6 +163,7 @@ public class MainActivity extends FlutterActivity {
 
         return fileName;
     }
+
     private byte[] getFontData() {
         try {
             String fileName = getFileName();
