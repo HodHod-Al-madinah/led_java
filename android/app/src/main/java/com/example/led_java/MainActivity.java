@@ -1,6 +1,22 @@
 package com.example.led_java;
 
 import io.flutter.embedding.android.FlutterActivity;
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.os.Build;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.widget.EditText;
+import android.widget.TextView;
 
 
 
@@ -123,8 +139,8 @@ public class MainActivity extends FlutterActivity {
         work.setText(text);
         work.setColors(colors);
         work.setDevice(device);
-        work.setWidth(96);
-        work.setHeight(32);
+        work.setWidth(device.getCol());
+        work.setHeight(device.getRow());
         work.setFontData(fontData);
         work.setKeepTime(200);
         ledSdk.playWork(this, work);
