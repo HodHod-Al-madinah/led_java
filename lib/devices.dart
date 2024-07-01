@@ -132,7 +132,17 @@ class _LedDevicesState extends State<LedDevices> {
     try {
       final int result =
           await platform.invokeMethod('connect', {'macAddress': macAddress});
-      SmartDialog.showToast('Connect result: $result');
+      if (result == 0) {
+        SmartDialog.showToast('Connected to LED');
+      } else if (result == -1) {
+        SmartDialog.showToast('Connect result: Already connected');
+      } else if (result == -1) {
+        SmartDialog.showToast('Connect result: "Empty MAC address');
+      }else{
+        SmartDialog.showToast('Connect result: $result');
+      }
+
+      // SmartDialog.showToast('Connect result: $result');
     } on PlatformException catch (e) {
       SmartDialog.showToast("Failed to connect to LED: '${e.message}'.");
     }

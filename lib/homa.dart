@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:led_java/devices.dart';
@@ -14,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   static const platform = MethodChannel('com.hodhod.led_example/led');
   TextEditingController macAddressController = TextEditingController();
   TextEditingController textController = TextEditingController();
+  GlobalKey formKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +30,11 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             TextFormField(
+              onChanged: (val) {
+                setState(() {
+                  textController.text = val;
+                });
+              },
               decoration: InputDecoration(
                 hintText: "Enter a Text",
                 focusedBorder: OutlineInputBorder(
@@ -46,7 +55,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 15),
             TextFormField(
               decoration: InputDecoration(
-                hintText: "17:42:0A:5B:5A:A0",
+                hintText: "",
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20.0),
                   borderSide: const BorderSide(
@@ -89,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _monograph,
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.blue),
                   ),
@@ -124,8 +133,26 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
+                const SizedBox(height: 15),
               ],
-            )
+            ),
+            RepaintBoundary(
+              key: formKey,
+              child: Container(
+                width: 96,
+                height: 32,
+                color: Colors.black,
+                child: Center(
+                  child: Text(
+                    textController.text,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -151,6 +178,62 @@ class _HomePageState extends State<HomePage> {
       SmartDialog.showToast('$result');
     } on PlatformException catch (e) {
       SmartDialog.showToast("Failed to play text on LED: '${e.message}'.");
+    }
+  }
+
+  // Future<void> _monographo() async {
+  //   try {
+  //     String result = await platform.invokeMethod('playMonograph');
+  //     // print('PlayText  result: $result');
+  //     SmartDialog.showToast(result);
+  //   } on PlatformException catch (e) {
+  //     SmartDialog.showToast("Failed to play text on LED: '${e.message}'.");
+  //   }
+  // }
+  // Future<void> _monographo() async {
+  //   try {
+  //     // Load image from assets
+  //     ByteData byteData = await rootBundle.load('assets/1.png');
+  //     Uint8List imageData = byteData.buffer.asUint8List();
+  //
+  //     // Send image data to native code
+  //     String result = await platform
+  //         .invokeMethod('playMonograph', {'imageData': imageData});
+  //     SmartDialog.showToast(result);
+  //   } on PlatformException catch (e) {
+  //     SmartDialog.showToast("Failed to play monograph on LED: '${e.message}'.");
+  //   }
+  // }
+  Future<void> _monograph() async {
+    try {
+      // Capture the widget as an image
+      ByteData? byteData = await _capturePng();
+      if (byteData != null) {
+        Uint8List imageData = byteData.buffer.asUint8List();
+
+        // Send image data to native code
+        String result = await platform
+            .invokeMethod('playMonograph', {'imageData': imageData});
+        SmartDialog.showToast(result);
+      } else {
+        SmartDialog.showToast("Failed to capture image.");
+      }
+    } on PlatformException catch (e) {
+      SmartDialog.showToast("Failed to play monograph on LED: '${e.message}'.");
+    }
+  }
+
+  Future<ByteData?> _capturePng() async {
+    try {
+      RenderRepaintBoundary boundary =
+          formKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage();
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      return byteData;
+    } catch (e) {
+      print(e);
+      return null;
     }
   }
 }
