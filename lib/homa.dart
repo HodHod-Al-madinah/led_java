@@ -1,8 +1,10 @@
 import 'dart:ui' as ui;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:led_java/devices.dart';
 
@@ -18,6 +20,8 @@ class _HomePageState extends State<HomePage> {
   TextEditingController macAddressController = TextEditingController();
   TextEditingController textController = TextEditingController();
   GlobalKey formKey = GlobalKey();
+  Color currentColor = Colors.white;
+  void changeColor(Color color) => setState(() => currentColor = color);
 
   @override
   Widget build(BuildContext context) {
@@ -75,80 +79,93 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
-                  // onPressed: _connectToLed,
-                  onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LedDevices())),
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.green),
-                  ),
-                  child: const Text(
-                    "Connect !",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _playText,
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.blue),
-                  ),
-                  child: const Text(
-                    "Send Text",
-                    style: TextStyle(color: Colors.white),
+                Expanded(
+                  child: ElevatedButton(
+                    // onPressed: _connectToLed,
+                    onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LedDevices())),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(Colors.green),
+                    ),
+                    child: const Text(
+                      "Connect !",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: _monograph,
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.blue),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            titlePadding: const EdgeInsets.all(0),
+                            contentPadding: const EdgeInsets.all(0),
+                            content: SingleChildScrollView(
+                              child: ColorPicker(
+                                pickerColor: currentColor,
+                                onColorChanged: changeColor,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(Colors.blue),
+                    ),
+                    child: const AutoSizeText(
+                      "Font Color",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                  child: const Text(
-                    "Monograph",
-                    style: TextStyle(color: Colors.white),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _playText,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(Colors.blue),
+                    ),
+                    child: const Text(
+                      "Send Text",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 25),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.blue),
-                  ),
-                  child: const Text(
-                    "Histogram",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 25),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.blue),
-                  ),
-                  child: const Text(
-                    "Gif",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 15),
-              ],
+            ElevatedButton(
+              onPressed: _monograph,
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(Colors.blue),
+              ),
+              child: const Text(
+                "Send A Message",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
+            const SizedBox(height: 35),
             RepaintBoundary(
               key: formKey,
               child: Container(
                 width: 96,
                 height: 32,
                 color: Colors.black,
-                child: Center(
-                  child: Text(
-                    textController.text,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                    ),
+                child: AutoSizeText(
+                  textController.text,
+                  maxLines: 3,
+                  minFontSize: 10,
+                  maxFontSize: 20,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    height: 1,
+                    color: currentColor,
                   ),
                 ),
               ),
@@ -174,8 +191,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final String text = textController.text;
       String result = await platform.invokeMethod('playText', {'text': text});
-      // print('PlayText  result: $result');
-      SmartDialog.showToast('$result');
+      SmartDialog.showToast(result);
     } on PlatformException catch (e) {
       SmartDialog.showToast("Failed to play text on LED: '${e.message}'.");
     }
@@ -206,12 +222,10 @@ class _HomePageState extends State<HomePage> {
   // }
   Future<void> _monograph() async {
     try {
-      // Capture the widget as an image
       ByteData? byteData = await _capturePng();
       if (byteData != null) {
         Uint8List imageData = byteData.buffer.asUint8List();
 
-        // Send image data to native code
         String result = await platform
             .invokeMethod('playMonograph', {'imageData': imageData});
         SmartDialog.showToast(result);
